@@ -17,6 +17,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.JBPopupListener;
@@ -78,7 +79,7 @@ public final class FindDfaProblemCauseFix implements LocalQuickFix, LowPriorityA
       () -> ReadAction.compute(causeFinder), JavaBundle.message("progress.title.finding.cause"), true, project);
     PsiFile file = myAnchor.getContainingFile();
     if (item != null && file != null) {
-      displayProblemCause(file, item);
+      displayProblemCauseInDialog(file, item);
     }
   }
 
@@ -160,5 +161,21 @@ public final class FindDfaProblemCauseFix implements LocalQuickFix, LowPriorityA
       .navigate(true);
     HintManagerImpl hintManager = (HintManagerImpl)HintManager.getInstance();
     hintManager.showInformationHint(editor, StringUtil.escapeXmlEntities(StringUtil.capitalize(item.toString())));
+  }
+
+  private static void displayProblemCauseInDialog(PsiFile file, TrackingRunner.CauseItem item) {
+    new DialogWrapper(file.getProject(), true) {
+      {
+        init();
+        setTitle("Explanator title");
+      }
+
+      @Override
+      protected JComponent createCenterPanel() {
+        JPanel panel = new JPanel();
+        panel.add(new JLabel("Explanator body"));
+        return panel;
+      }
+    }.show();
   }
 }
